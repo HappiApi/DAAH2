@@ -159,6 +159,22 @@ html, body {
   position: relative;
 }
 
+.right-bar h1 {
+  font-size: 1em;
+  text-align: center;
+  background-color: #eee;
+}
+
+#component-specific input {
+  width: 50%;
+  margin: 0px 10px 0px 5px;
+}
+
+#component-specific button {
+  width: 90%;
+  margin: 0px 5%;
+}
+
 #right-bar-bottom {
   position: absolute;
   bottom: 0;
@@ -174,7 +190,6 @@ html, body {
   width: 30px;
   height: 30px;
   padding-left: 10px;
-
 }
 
 #delete-button {

@@ -29,11 +29,16 @@ function drop(ev) {
 
   if(element != null) {
     if($(element).hasClass("drag-element")) {
-      $(ev.target).append($('<img src="' + element.src + '" alt="' + element.alt + '">').on("dragstart", drag));
+      var img = $('<img src="' + element.src + '" alt="' + element.alt + '">');
+      img.on("dragstart", drag);
+      selectedElement = img;
+      $(ev.target).append(img);
     }
     else {
       $(element).appendTo($(ev.target));
+      selectedElement = element;
     }
+    generateRightBar();
   }
 
   currentDragElement = null;
@@ -64,7 +69,7 @@ $('.drag-element').on("dragstart", drag);
 
 //Right bar Code
 //-----------------------------------------------
-var resistorHTML = "<div>Resistance</div><"
+
 
 function getRotationDegrees(obj) {
   var matrix = obj.css("transform");
@@ -88,11 +93,44 @@ function rotating(ev) {
 function deleteElement(ev) {
   $(selectedElement).remove();
   selectedElement = null;
+  generateRightBar();
 }
+
+function generateRightBar() {
+  var container = $('#component-specific');
+  container.empty();
+  if(selectedElement != null) {
+    container.append('<h1>' + 'Name' + '</h1>');
+
+    //if(component.name == 'resistor') {
+      //var form = $('<form action="">Resistance:<input type="number" name="resistance">kΩ');
+      //container.append(form);
+    //}
+    //else if(component.name == 'cell') {
+      //var form = $('<form action="">Volts:<input type="number" name="resistance">V');
+      //container.append(form);
+    //}
+    //else if(container.name == 'gate') {
+      //var button = $('<button>Close</button>');
+      //container.append(button);
+    //}
+    //else if(container.name == 'ammeter') {
+      //var result = 10;
+      //var measurement = $('<div><b>Result:</b></div><div id="measurement-result">' + result + ' kΩ</div>');
+      //container.append(measurement);
+    //}
+    //else if(container.name == 'voltmeter') {
+      //var result = 10;
+      //var measurement = $('<div><b>Result:</b></div><div id="measurement-result">' + result + ' V</div>');
+      //container.append(measurement);
+    //}
+  }
+}
+
 
 function selectElement(ev) {
   selectedElement = ev.target;
-  //generateRightBar();
+  generateRightBar();
 }
 
 //Setup
