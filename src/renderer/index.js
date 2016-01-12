@@ -32,9 +32,11 @@ for(var i = 0; i < 9; i++) {
     var row = $('<div class="row">');
     grid.append(row);
     for(var j = 0; j < 9; j++) {
-      row.append('<div class="column"></div>')
+      var column = $('<div class="column"></div>');
+      column
         .on("dragover", allowDrop)
-        .on("drop", drop)
+        .on("drop", drop);
+      row.append(column);
     }
     grid.append('</div>');
 }
