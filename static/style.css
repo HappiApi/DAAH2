@@ -77,6 +77,11 @@ html, body {
   display: inline-block;
 }
 
+.drag-element {
+  width: 45%;
+  height: auto;
+}
+
 /* GRID */
 
 #grid {
