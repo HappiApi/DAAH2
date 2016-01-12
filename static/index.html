@@ -3,12 +3,43 @@
   <head>
     <meta charset="UTF-8">
     <title>Hello World!</title>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <h1>Hello World!</h1>
-    We are using node <script>document.write(process.versions.node)</script>,
-    Chrome <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
-  </body>
+    <header class="site-header">
+        <div id="projects">
+          <div class="project">
+            <div>1</div>
+            <img src="./images/example_circuit.png" alt="" />
+          </div>
+          <div class="project">
+            <div>2</div>
+            <img src="./images/example_circuit.png" alt="" />
+          </div>
+        </div>
+        <img class="add_project" src="./images/add_sign.png" alt="Add" />
+    </header>
+
+    <div class="site-container">
+      <div class="left-bar">
+        <h1>Components</h1>
+        <div class="components">
+          <img src = "" alt="cell"/>
+          <img src="" alt="resistor" />
+          <img src="" alt="diode" />
+          <img src="" alt="switch" />
+        </div>
+
+        <h1>Wires</h1>
+        <div class="components">
+          <img src="" alt="straight" />
+          <img src="" alt="bend" />
+          <img src="" alt="split" />
+        </div>
+      </div>
+
+      <div class="right-bar ">
+
+      </div>
   <script src="index.js" charset="utf-8"></script>
 </html>
