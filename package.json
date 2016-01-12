@@ -1,0 +1,23 @@
+{
+  "name": "DAAH2",
+  "version": "0.0.1",
+  "description": "A desktop application for creating and testing electronic circuits",
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron . -r"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HappiApi/DAAH2.git"
+  },
+  "keywords": [
+    "electronic",
+    "circuit",
+    "simulation"
+  ],
+  "author": "DAAH",
+  "license": "MIT",
+  "devDependencies": {
+    "electron-prebuilt": "^0.36.3"
+  }
+}
