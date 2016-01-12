@@ -10,10 +10,19 @@ function drag(ev) {
     currentDragElement = ev.target;
 }
 
+function checkTarget(ev) {
+  while(!$(ev.target).hasClass("column")) {
+    console.log(ev.target);
+    ev.target = ev.target.parentElement;
+  }
+  $(ev.target).empty();
+}
+
 function drop(ev) {
     ev.preventDefault();
 
     var element = currentDragElement;
+    checkTarget(ev);
 
     if(element != null) {
       if($(element).hasClass("drag-element")) {
