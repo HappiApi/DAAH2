@@ -12,6 +12,7 @@ var Project = {
 
 var componentCount = 0
 var draggedElement = null;
+var draggedElementWireId = null; // Used for wires to see if it was connected to in/out
 var draggedWire = null;
 
 // Debug
@@ -20,7 +21,6 @@ window.Project = Project
 window.draggedElement = draggedElement
 
 // Component Creation
-// 5 for testing
 function Component(name){
   return {
     id: name[0] + String(componentCount),
@@ -188,9 +188,9 @@ function createWire(coor) {
     .attr("stroke-width", "2");
 }
 
-function checkIfConnector(current, radius) {
-  var orientation = getRotationAngle(current)/90;
-  var centerCoor = d3.transform(current.attr("transform"))['translate'];
+function getInOutCoor(obj) {
+  var orientation = getRotationAngle(obj)/90;
+  var centerCoor = d3.transform(obj.attr("transform"))['translate'];
   centerCoor[0] += 20; centerCoor[1] += 20;
 
   if(orientation == 0) {
@@ -210,6 +210,14 @@ function checkIfConnector(current, radius) {
     var outCoor = [centerCoor[0], centerCoor[1] - 40 + 17];
   }
 
+  return [inCoor, outCoor];
+}
+
+function checkIfConnector(obj, radius) {
+  var inOutCoor = getInOutCoor(obj);
+  var inCoor = inOutCoor[0];
+  var outCoor = inOutCoor[1];
+
   var pos = d3.mouse(svg.node());
   var inDist = Math.sqrt(Math.pow(pos[0] - inCoor[0], 2) + Math.pow(pos[1] - inCoor[1], 2));
   var outDist = Math.sqrt(Math.pow(pos[0] - outCoor[0], 2) + Math.pow(pos[1] - outCoor[1], 2));
@@ -220,7 +228,7 @@ function checkIfConnector(current, radius) {
   }
   // Wire from output of component
   if(outDist < radius) {
-    return {type: "in", coordinates: outCoor, dist: outDist};
+    return {type: "out", coordinates: outCoor, dist: outDist};
   }
   return null;
 }
@@ -231,6 +239,7 @@ function dragstart() {
     var connector = checkIfConnector(current, 6);
     if(connector != null) {
       createWire(connector['coordinates']);
+      draggedElementWireId = connector['type'];
     }
     draggedElement = current;
   }
@@ -258,6 +267,33 @@ function dragstart() {
   generateRightBar();
 }
 
+function moveConnectedWires(connectedWires, inOutCoor) {
+  for(var i = 0; i < connectedWires.length; i++) {
+    for(var j = 0; j < connectedWires[0].length; j++) {
+      if(connectedWires[0][j]['connects'][0].split('-')[1] == 'in') {
+        var position = inOutCoor[0];
+      }
+      else {
+        var position = inOutCoor[1];
+      }
+      d3.select('#' + connectedWires[0][j]['connects'][0] + '-' + connectedWires[0][j]['connects'][1])
+        .attr('x1', position[0])
+        .attr('y1', position[1]);
+    }
+    for(var j = 0; j < connectedWires[1].length; j++) {
+      if(connectedWires[1][j]['connects'][0].split('-')[1] == 'in') {
+        var position = inOutCoor[0];
+      }
+      else {
+        var position = inOutCoor[1];
+      }
+      d3.select('#' + connectedWires[1][j]['connects'][0] + '-' + connectedWires[1][j]['connects'][1])
+        .attr('x2', position[0])
+        .attr('y2', position[1]);
+    }
+  }
+}
+
 function dragmove() {
   // Get position relative to SVG
   var pos = d3.mouse(svg.node());
@@ -268,11 +304,29 @@ function dragmove() {
   }
   else {
     transformCoor(draggedElement, pos[0], pos[1]);
+    var inOutCoor = getInOutCoor(draggedElement);
+    var component = getComponentObject(draggedElement);
+
+    var connectedWires = [[], []];
+    for(var i = 0; i < Project.wires.length; i++) {
+      if(Project.wires[i]['connects'][0].split('-')[0] == component['id']) {
+        connectedWires[0].push(Project.wires[i]);
+      }
+      else if(Project.wires[i]['connects'][1].split('-')[0] == component['id']) {
+        connectedWires[1].push(Project.wires[i]);
+      }
+    }
+    moveConnectedWires(connectedWires, inOutCoor);
   }
 }
 
-function addWire(closestComponent) {
+function addWire(closestComponent, closestConnector) {
+  var components = [getComponentObject(draggedElement),
+    getComponentObject(d3.select(closestComponent))];
+    wire = Wire(components[0]['id'] + "-" + draggedElementWireId, components[1]['id'] + "-" + closestConnector['type']);
+    Project.wires.push(wire);
 
+    draggedWire.attr('id', wire['connects'][0] + '-' + wire['connects'][1]);
 }
 
 function wiredragend() {
@@ -292,7 +346,7 @@ function wiredragend() {
     draggedWire.remove();
   }
   else {
-    addWire(closestComponent);
+    addWire(closestComponent, closestConnector);
     draggedWire
       .attr('x2', closestConnector['coordinates'][0])
       .attr('y2', closestConnector['coordinates'][1]);
