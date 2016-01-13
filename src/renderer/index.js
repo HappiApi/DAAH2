@@ -2,6 +2,17 @@ const $ = require('jquery');
 
 var currentDragElement;
 
+
+var gridData = []
+//Initialise gridData
+for(i=0; i<9; i++){
+  gridData[i] = [null,null,null,null,null,null,null,null,null]
+}
+
+function createComponent(name){
+  return {type:name, orientation:1, parameter:null} 
+}
+
 function allowDrop(ev) {
     ev.preventDefault();
 }
@@ -24,6 +35,7 @@ function drop(ev) {
       }
     }
 
+    gridData[currentDragElement.id[0]][currentDragElement.id[1]] = createComponent(currentDragElement.alt)
     currentDragElement = null;
 }
 
@@ -34,6 +46,7 @@ for(var i = 0; i < 9; i++) {
     for(var j = 0; j < 9; j++) {
       var column = $('<div class="column"></div>');
       column
+        .attr("id", String(i)+String(j))
         .on("dragover", allowDrop)
         .on("drop", drop);
       row.append(column);
@@ -45,6 +58,9 @@ $('.drag-element').on("dragstart", drag);
 
 //Debug
 $('.right-bar').on("click", gridTraverse);
+$('.left-bar').on("click", function(){
+  console.log(gridData)
+});
 
 //Parse HTML method
 function gridTraverse(){
