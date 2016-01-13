@@ -1,8 +1,32 @@
 const $ = require('jquery');
 const d3 = require('d3');
+const componentMap = require('../static.json');
 
-var selectedElement = null;
-var components = [];
+
+//BAD BAD GLOBALS
+var Project = {
+  name: "TESTI",
+  components: [],
+  wires: []
+};
+
+var componentCount = 0
+
+//Debug
+window.componentMap = componentMap
+window.Project = Project
+
+//Component Creation
+function Component(name){
+  return {
+    id: name[0] + String(componentCount),
+    type: name,
+    orientation: 0,
+    x: 0,
+    y: 0,
+    parameter: null
+  }
+}
 
 //Right bar Code
 //-----------------------------------------------
@@ -118,9 +142,21 @@ function dragstart() {
   if (current.attr("class") == "component") {
     checkIfConnector(current);
     draggedElement = current;
-  } else {
+  } 
+  // First time it is dragged, so create new object for component
+  else {
+
+    //Create new Component and save it in Project
+    var newComponent = new Component(current.node().alt)
+    Project.components.push(newComponent)
+
+    //Increase Component Count
+    componentCount++
+
+    // Create new g element with image element inside
     draggedElement = canvas.append("g")
       .attr("class", "component")
+      .attr("id", newComponent.id)
       .attr("transform", "translate(" + -40 + "," + -40 + ")")
       .call(drag);
     draggedElement.append("image")
@@ -132,16 +168,30 @@ function dragstart() {
 }
 
 function dragmove() {
-  //console.log("dragmove", d3.event);
+  console.log("dragmove", d3.event);
+
+  // Get position relative to SVG 
   var pos = d3.mouse(svg.node());
+  // Move element
   draggedElement
     .attr("transform", "translate(" + (pos[0] - 20) + "," + (pos[1] - 20) + ")" + "rotate("
      + getRotationDegrees(draggedElement) + ", " + 20 + "," + 20 +")")
 }
 
 function dragend() {
-  //console.log("dragend", d3.event);
-  //draggedElement = null;
+  console.log("dragend", d3.event);
+
+  // Get position relative to SVG 
+  var pos = d3.mouse(svg.node());
+  // Update element position
+  Project.components.forEach(function (e,i,a){
+    if(e.id == draggedElement.attr("id")){
+      e.x = pos[0] - 20
+      e.y = pos[1] - 20
+    }
+  })
+  //Dereference
+  draggedElement = null;
 }
 
 
