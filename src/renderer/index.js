@@ -4,54 +4,74 @@ var currentDragElement;
 
 
 var gridData = []
+initialseGrid();
 //Initialise gridData
-for(i=0; i<9; i++){
-  gridData[i] = [null,null,null,null,null,null,null,null,null]
+function initialseGrid() {
+  for(i=0; i<9; i++){
+    gridData[i] = [null,null,null,null,null,null,null,null,null];
+  }
 }
 
+
 function createComponent(name){
-  return {type:name, orientation:1, parameter:null} 
+  return {type:name, orientation:1, parameter:null}
+}
+
+function getIndexes(element) {
+  var column = $(element).parent();
+  var rowIndex = column.parent().index('.row');
+  var columnIndex = column.index('.column') - 9*rowIndex;
+  return [rowIndex, columnIndex];
 }
 
 function allowDrop(ev) {
-    ev.preventDefault();
+  ev.preventDefault();
 }
 
 function drag(ev) {
-    currentDragElement = ev.target;
+  currentDragElement = ev.target;
 }
 
 function drop(ev) {
-    ev.preventDefault();
+  ev.preventDefault();
 
-    var element = currentDragElement;
+  var element = currentDragElement;
 
-    if(element != null) {
-      if($(element).hasClass("drag-element")) {
-        $(ev.target).append($('<img src="' + element.src + '" alt="' + element.alt + '">').on("dragstart", drag));
-      }
-      else {
-        $(element).appendTo($(ev.target));
-      }
+  if(element != null) {
+    if($(element).hasClass("drag-element")) {
+      element = $('<img src="' + element.src + '" alt="' + element.alt + '">');
+      element.on("dragstart", drag);
+      $(ev.target).append(element);
     }
-
-    gridData[currentDragElement.id[0]][currentDragElement.id[1]] = createComponent(currentDragElement.alt)
-    currentDragElement = null;
+    else {
+      var oldIndex = getIndexes(element);
+      $(element).appendTo($(ev.target));
+    }
+    var index = getIndexes(element);
+    if(oldIndex == null) {
+      gridData[index[0]][index[1]] = createComponent(currentDragElement.alt);
+    }
+    else {
+      gridData[index[0]][index[1]] = gridData[oldIndex[0]][oldIndex[1]];
+      gridData[oldIndex[0]][oldIndex[1]] = null;
+    }
+  }
+  currentDragElement = null;
 }
 
 var grid = $('#grid');
 for(var i = 0; i < 9; i++) {
-    var row = $('<div class="row">');
-    grid.append(row);
-    for(var j = 0; j < 9; j++) {
-      var column = $('<div class="column"></div>');
-      column
-        .attr("id", String(i)+String(j))
-        .on("dragover", allowDrop)
-        .on("drop", drop);
-      row.append(column);
-    }
-    grid.append('</div>');
+  var row = $('<div class="row">');
+  grid.append(row);
+  for(var j = 0; j < 9; j++) {
+    var column = $('<div class="column"></div>');
+    column
+      .attr("id", String(i)+String(j))
+      .on("dragover", allowDrop)
+      .on("drop", drop);
+    row.append(column);
+  }
+  grid.append('</div>');
 }
 
 $('.drag-element').on("dragstart", drag);
