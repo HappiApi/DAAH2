@@ -10,8 +10,9 @@ var components = [];
 function getRotationDegrees(obj) {
   var translate = d3.transform(obj.attr("transform"));
   var angle = translate['rotate'];
-  return angle;
+  return (angle < 0) ? angle +=360 : angle;
 }
+
 
 function rotating(ev) {
   if($(ev.target).attr('id') == 'rotate-cw') {
@@ -80,10 +81,42 @@ var drag = d3.behavior.drag();
 var components = d3.selectAll(".drag-element")
     .call(drag);
 
+function checkIfConnector(current) {
+  var orientation = getRotationDegrees(current)/90;
+  var centerCoor = d3.transform(draggedElement.attr("transform"))['translate'];
+
+  if(orientation == 0) {
+    var inCoor = [centerCoor[0] - 17, centerCoor[1]];
+    var outCoor = [centerCoor[0] + 17, centerCoor[1]];
+  }
+  else if(orientation == 1) {
+    var inCoor = [centerCoor[0], centerCoor[1] + 17];
+    var outCoor = [centerCoor[0], centerCoor[1] - 17];
+  }
+  else if(orientation == 2) {
+    var inCoor = [centerCoor[0] + 17, centerCoor[1]];
+    var outCoor = [centerCoor[0] - 17, centerCoor[1]];
+  }
+  else {
+    var inCoor = [centerCoor[0], centerCoor[1] - 17];
+    var outCoor = [centerCoor[0], centerCoor[1] + 17];
+  }
+  var pos = d3.mouse(svg.node());
+
+  if((Math.abs(pos[0] - 20 - inCoor[0]) < 6) && (Math.abs(pos[1] - 20 - inCoor[1]) < 6)) {
+    console.log("Close in");
+  }
+  if((Math.abs(pos[0] - 20 - outCoor[0]) < 6) && (Math.abs(pos[1] - 20 - outCoor[1]) < 6)) {
+    console.log("Close out");
+  }
+
+}
+
 function dragstart() {
   console.log("dragstart", d3.event);
   var current = d3.select(this);
   if (current.attr("class") == "component") {
+    checkIfConnector(current);
     draggedElement = current;
   } else {
     draggedElement = canvas.append("g")
