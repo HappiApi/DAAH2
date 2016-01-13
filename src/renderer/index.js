@@ -1,9 +1,9 @@
 const $ = require('jquery');
 const d3 = require('d3');
-const componentMap = require('../static.json');
+//const componentMap = require('../static.json');
 
 
-//BAD BAD GLOBALS
+// BAD BAD GLOBALS
 var Project = {
   name: "TESTI",
   components: [],
@@ -11,13 +11,15 @@ var Project = {
 };
 
 var componentCount = 0
+var draggedElement = null;
+var draggedWire = null;
 
-//Debug
-window.componentMap = componentMap
+// Debug
+// window.componentMap = componentMap
 window.Project = Project
 window.draggedElement = draggedElement
 
-//Component Creation
+// Component Creation
 function Component(name){
   return {
     id: name[0] + String(componentCount),
@@ -29,14 +31,51 @@ function Component(name){
   }
 }
 
+// Transform functions
+// -----------------------------------------------
 
-// var selectedElement = null;
-// var components = [];
+function transformCoor(obj, x, y) {
+  var angle = getRotationAngle(obj);
+  if(angle == null) {
+    angle = 0;
+  }
 
-//Right bar Code
-//-----------------------------------------------
+  var bounds = canvasContainer.node().getBoundingClientRect();
+  if(x < 0) { x = 20; }
+  if(y < 0) { y = 20; }
+  if(x > bounds.width) { x = bounds.width - 30; }
+  if(y > bounds.height) { y = bounds.height - 20; }
 
-function getRotationDegrees(obj) {
+  obj
+    .attr("transform", "translate(" + (x - 20) + "," + (y - 20) + ")" + " rotate("
+     + angle + ", " + 20 + "," + 20 +")");
+}
+
+function transformAngle(obj, angle) {
+  angle = angle % 360;
+  var translate = d3.transform(obj.attr("transform"))['translate'];
+  obj.attr("transform", "translate(" + translate[0] + "," + translate[1] + ") rotate("
+   + angle + ", " + 0 + "," + 0 +")");
+}
+
+function transform(obj, x, y, angle) {
+  var bounds = canvasContainer.node().getBoundingClientRect();
+  if(x < 0) { x = 20; }
+  if(y < 0) { y = 20; }
+  if(x > bounds.width) { x = bounds.width - 30; }
+  if(y > bounds.height) { y = bounds.height - 20; }
+
+  angle = angle % 360;
+  obj
+    .attr("transform", "translate(" + (x - 20) + "," + (y - 20) + ")" + " rotate("
+     + angle + ", " + 20 + "," + 20 +")");
+}
+
+
+// Right bar Code
+// -----------------------------------------------
+
+function getRotationAngle(obj) {
   var translate = d3.transform(obj.attr("transform"));
   var angle = translate['rotate'];
   return (angle < 0) ? angle +=360 : angle;
@@ -45,15 +84,12 @@ function getRotationDegrees(obj) {
 
 function rotating(ev) {
   if($(ev.target).attr('id') == 'rotate-cw') {
-    var rotation = ((getRotationDegrees(draggedElement) + 90) % 360);
+    var rotation = ((getRotationAngle(draggedElement) + 90) % 360);
   }
   else {
-    var rotation = ((getRotationDegrees(draggedElement) - 90) % 360);
+    var rotation = ((getRotationAngle(draggedElement) - 90) % 360);
   }
-  var translate = d3.transform(draggedElement.attr("transform"))['translate'];
-
-  draggedElement.attr("transform", "translate(" + translate[0] + "," + translate[1] + ") rotate("
-   + rotation + ", " + 0 + "," + 0 +")");
+  transformAngle(draggedElement, rotation);
 }
 
 function deleteElement(ev) {
@@ -103,21 +139,31 @@ $('#rotate-cw').on('click', rotating);
 $('#delete-button').on('click', deleteElement)
 
 // D3 SVG Code
+// -----------------------------------------------
 var canvasContainer = d3.select(".main");
 var svg = canvasContainer.select("svg");
 var canvas = svg.append("g")
     .attr("class", "canvas");
-
-var draggedElement = null;
 
 var drag = d3.behavior.drag();
 
 var components = d3.selectAll(".drag-element")
     .call(drag);
 
-function checkIfConnector(current) {
-  var orientation = getRotationDegrees(current)/90;
-  var centerCoor = d3.transform(draggedElement.attr("transform"))['translate'];
+function createWire(coor) {
+  draggedWire = canvas.append("line")
+    .attr("x1", coor[0])
+    .attr("y1", coor[1])
+    .attr("x2", coor[0])
+    .attr("y2", coor[1])
+    .attr("stroke", "black")
+    .attr("stroke-width", "2");
+}
+
+function checkIfConnector(current, radius) {
+  var orientation = getRotationAngle(current)/90;
+  var centerCoor = d3.transform(current.attr("transform"))['translate'];
+  centerCoor[0] += 20; centerCoor[1] += 20;
 
   if(orientation == 0) {
     var inCoor = [centerCoor[0] - 17, centerCoor[1]];
@@ -136,31 +182,37 @@ function checkIfConnector(current) {
     var outCoor = [centerCoor[0], centerCoor[1] + 17];
   }
   var pos = d3.mouse(svg.node());
+  var inDist = Math.sqrt(Math.pow(pos[0] - inCoor[0], 2) + Math.pow(pos[1] - inCoor[1], 2));
+  var outDist = Math.sqrt(Math.pow(pos[0] - outCoor[0], 2) + Math.pow(pos[1] - outCoor[1], 2));
 
-  if((Math.abs(pos[0] - 20 - inCoor[0]) < 6) && (Math.abs(pos[1] - 20 - inCoor[1]) < 6)) {
-    console.log("Close in");
+  // Wire from input of component
+  if(inDist < radius) {
+    return {type: "in", coordinates: inCoor, dist: inDist};
   }
-  if((Math.abs(pos[0] - 20 - outCoor[0]) < 6) && (Math.abs(pos[1] - 20 - outCoor[1]) < 6)) {
-    console.log("Close out");
+  // Wire from output of component
+  if(outDist < radius) {
+    return {type: "in", coordinates: outCoor, dist: outDist};
   }
-
+  return null;
 }
 
 function dragstart() {
-  console.log("dragstart", d3.event);
   var current = d3.select(this);
   if (current.attr("class") == "component") {
-    checkIfConnector(current);
+    var connector = checkIfConnector(current, 6);
+    if(connector != null) {
+      createWire(connector['coordinates']);
+    }
     draggedElement = current;
-  } 
+  }
   // First time it is dragged, so create new object for component
   else {
 
-    //Create new Component and save it in Project
+    // Create new Component and save it in Project
     var newComponent = new Component(current.node().alt)
     Project.components.push(newComponent)
 
-    //Increase Component Count
+    // Increase Component Count
     componentCount++
 
     // Create new g element with image element inside
@@ -178,30 +230,57 @@ function dragstart() {
 }
 
 function dragmove() {
-  console.log("dragmove", d3.event);
-
-  // Get position relative to SVG 
+  // Get position relative to SVG
   var pos = d3.mouse(svg.node());
-  // Move element
-  draggedElement
-    .attr("transform", "translate(" + (pos[0] - 20) + "," + (pos[1] - 20) + ")" + "rotate("
-     + getRotationDegrees(draggedElement) + ", " + 20 + "," + 20 +")")
+  if(draggedWire) {
+    draggedWire
+      .attr("x2", pos[0])
+      .attr("y2", pos[1]);
+  }
+  else {
+    transformCoor(draggedElement, pos[0], pos[1]);
+  }
+}
+
+function wiredragend() {
+  var minDist = 1000;
+  var closestConnector = null;
+  var closestComponent = null;
+
+  d3.selectAll('.component').each(function(d) {
+    connector = checkIfConnector(d3.select(this), 20);
+    if(connector != null && connector['dist'] < minDist) {
+      minDist = connector.dist;
+      closestConnector = connector;
+      closestComponent = this;
+    }
+  });
+  if(closestConnector == null) {
+    draggedWire.remove();
+  }
+  else {
+    draggedWire
+      .attr('x2', closestConnector['coordinates'][0])
+      .attr('y2', closestConnector['coordinates'][1]);
+  }
+  draggedWire = null;
 }
 
 function dragend() {
-  console.log("dragend", d3.event);
-
-  // Get position relative to SVG 
+  // Get position relative to SVG
   var pos = d3.mouse(svg.node());
   // Update element position
-  Project.components.forEach(function (e,i,a){
-    if(e.id == draggedElement.attr("id")){
-      e.x = pos[0] - 20
-      e.y = pos[1] - 20
-    }
-  })
-  //Dereference, can't for rotation
-  //draggedElement = null;
+  if(draggedWire != null) {
+    wiredragend();
+  }
+  else {
+    Project.components.forEach(function (e,i,a) {
+      if(e.id == draggedElement.attr("id")){
+        e.x = pos[0] - 20
+        e.y = pos[1] - 20
+      }
+    });
+  }
 }
 
 
@@ -209,7 +288,6 @@ function resize() {
   var bounds = canvasContainer.node().getBoundingClientRect();
   svg.attr("width", bounds.width);
   svg.attr("height", bounds.height);
-  console.log(bounds);
 }
 
 resize();
