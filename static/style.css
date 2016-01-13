@@ -11,10 +11,6 @@ html, body {
   margin: 0;
 }
 
-svg rect {
-  fill: rgba(255, 215, 0, 0.55);
-}
-
 .site-container {
   height: 100%;
   display: flex;
@@ -69,6 +65,8 @@ svg rect {
   min-width: 100px;
   max-width: 200px;
   border: 5px solid black;
+  border-left: 0;
+  border-right: 0;
 }
 
 .left-bar h1 {
@@ -92,7 +90,10 @@ svg rect {
   height: 100%;
   width: 100%;
   border: 5px solid black;
-  overflow: scroll;
+}
+
+svg rect {
+  fill: rgba(255, 215, 0, 0.55);
 }
 
 /* RIGHT-BAR */
@@ -103,6 +104,8 @@ svg rect {
   min-width: 100px;
   max-width: 150px;
   border: 5px solid black;
+  border-left: 0;
+  border-right: 0;
   position: relative;
 }
 
