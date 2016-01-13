@@ -15,6 +15,7 @@ var componentCount = 0
 //Debug
 window.componentMap = componentMap
 window.Project = Project
+window.draggedElement = draggedElement
 
 //Component Creation
 function Component(name){
@@ -27,6 +28,10 @@ function Component(name){
     parameter: null
   }
 }
+
+
+// var selectedElement = null;
+// var components = [];
 
 //Right bar Code
 //-----------------------------------------------
@@ -52,6 +57,11 @@ function rotating(ev) {
 }
 
 function deleteElement(ev) {
+  Project.components.forEach(function(e,i,a){
+    if(e.id == draggedElement.attr("id")){
+      delete Project.components[i]
+    }
+  })
   $(draggedElement.node()).remove();
   draggedElement = null;
   generateRightBar();
@@ -190,8 +200,8 @@ function dragend() {
       e.y = pos[1] - 20
     }
   })
-  //Dereference
-  draggedElement = null;
+  //Dereference, can't for rotation
+  //draggedElement = null;
 }
 
 
