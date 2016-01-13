@@ -20,6 +20,7 @@ window.Project = Project
 window.draggedElement = draggedElement
 
 // Component Creation
+// 5 for testing
 function Component(name){
   return {
     id: name[0] + String(componentCount),
@@ -28,7 +29,23 @@ function Component(name){
     x: 0,
     y: 0,
     parameter: null
+  };
+}
+
+function Wire(id1, id2) {
+  return {
+    connects: [id1, id2]
+  };
+}
+
+// Gets component object from d3 object
+function getComponentObject(d3Object) {
+  for(var i = 0; i < Project.components.length; i++) {
+    if(Project.components[i].id == d3Object.attr("id")) {
+      return Project.components[i];
+    }
   }
+  return null;
 }
 
 // Transform functions
@@ -54,6 +71,7 @@ function transformCoor(obj, x, y) {
 function transformAngle(obj, angle) {
   angle = angle % 360;
   var translate = d3.transform(obj.attr("transform"))['translate'];
+
   obj.attr("transform", "translate(" + translate[0] + "," + translate[1] + ") rotate("
    + angle + ", " + 0 + "," + 0 +")");
 }
@@ -76,9 +94,11 @@ function transform(obj, x, y, angle) {
 // -----------------------------------------------
 
 function getRotationAngle(obj) {
-  var translate = d3.transform(obj.attr("transform"));
-  var angle = translate['rotate'];
-  return (angle < 0) ? angle +=360 : angle;
+  if(obj != null) {
+    var translate = d3.transform(obj.attr("transform"));
+    var angle = translate['rotate'];
+    return (angle < 0) ? angle +=360 : angle;
+  }
 }
 
 
@@ -107,30 +127,38 @@ function generateRightBar() {
   var container = $('#component-specific');
   container.empty();
   if(draggedElement != null) {
-    container.append('<h1>' + 'Name' + '</h1>');
+    var component = getComponentObject(draggedElement);
+    if(component != null) {
+      container.append('<h1>' + component['type'] + '</h1>');
 
-    //if(component.name == 'resistor') {
-      //var form = $('<form action="">Resistance:<input type="number" name="resistance">kΩ');
-      //container.append(form);
-    //}
-    //else if(component.name == 'cell') {
-      //var form = $('<form action="">Volts:<input type="number" name="resistance">V');
-      //container.append(form);
-    //}
-    //else if(container.name == 'gate') {
-      //var button = $('<button>Close</button>');
-      //container.append(button);
-    //}
-    //else if(container.name == 'ammeter') {
-      //var result = 10;
-      //var measurement = $('<div><b>Result:</b></div><div id="measurement-result">' + result + ' kΩ</div>');
-      //container.append(measurement);
-    //}
-    //else if(container.name == 'voltmeter') {
-      //var result = 10;
-      //var measurement = $('<div><b>Result:</b></div><div id="measurement-result">' + result + ' V</div>');
-      //container.append(measurement);
-    //}
+      if(component['type'] == 'resistor') {
+        var form = $('<form action="">Resistance:<input type="number" value="' + component['parameter'] +
+         '" name="resistance">kΩ <input type="submit" value="Submit">');
+        container.append(form);
+      }
+      else if(component['type'] == 'cell') {
+        var form = $('<form action="">Volts:<input type="number" value="' + component['parameter'] +
+        '" name="resistance">V  <input type="submit" value="Submit">');
+        container.append(form);
+      }
+      else if(component['type'] == 'switch') {
+        var button = $('<button>Close</button>');
+        container.append(button);
+      }
+      else if(component['type'] == 'ammeter') {
+        var result = 10;
+        var measurement = $('<div><b>Result:</b></div><div id="measurement-result">' + component['parameter']
+         + ' kΩ</div>');
+        container.append(measurement);
+      }
+      else if(component['type'] == 'voltmeter') {
+        var result = 10;
+        var measurement = $('<div><b>Result:</b></div><div id="measurement-result">' + component['parameter']
+         + ' V</div>');
+        container.append(measurement);
+      }
+    }
+
   }
 }
 
@@ -170,17 +198,18 @@ function checkIfConnector(current, radius) {
     var outCoor = [centerCoor[0] + 17, centerCoor[1]];
   }
   else if(orientation == 1) {
-    var inCoor = [centerCoor[0], centerCoor[1] + 17];
-    var outCoor = [centerCoor[0], centerCoor[1] - 17];
+    var inCoor = [centerCoor[0] - 40, centerCoor[1] + 17];
+    var outCoor = [centerCoor[0] - 40, centerCoor[1] - 17];
   }
   else if(orientation == 2) {
-    var inCoor = [centerCoor[0] + 17, centerCoor[1]];
-    var outCoor = [centerCoor[0] - 17, centerCoor[1]];
+    var inCoor = [centerCoor[0] - 40 + 17, centerCoor[1] - 40];
+    var outCoor = [centerCoor[0] - 40 - 17, centerCoor[1] - 40];
   }
   else {
-    var inCoor = [centerCoor[0], centerCoor[1] - 17];
-    var outCoor = [centerCoor[0], centerCoor[1] + 17];
+    var inCoor = [centerCoor[0], centerCoor[1] - 40 - 17];
+    var outCoor = [centerCoor[0], centerCoor[1] - 40 + 17];
   }
+
   var pos = d3.mouse(svg.node());
   var inDist = Math.sqrt(Math.pow(pos[0] - inCoor[0], 2) + Math.pow(pos[1] - inCoor[1], 2));
   var outDist = Math.sqrt(Math.pow(pos[0] - outCoor[0], 2) + Math.pow(pos[1] - outCoor[1], 2));
@@ -242,6 +271,10 @@ function dragmove() {
   }
 }
 
+function addWire(closestComponent) {
+
+}
+
 function wiredragend() {
   var minDist = 1000;
   var closestConnector = null;
@@ -259,6 +292,7 @@ function wiredragend() {
     draggedWire.remove();
   }
   else {
+    addWire(closestComponent);
     draggedWire
       .attr('x2', closestConnector['coordinates'][0])
       .attr('y2', closestConnector['coordinates'][1]);
