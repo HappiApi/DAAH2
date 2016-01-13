@@ -1,4 +1,5 @@
 const $ = require('jquery');
+const d3 = require('d3');
 
 var currentDragElement = null;
 var selectedElement = null;
@@ -48,21 +49,21 @@ function drop(ev) {
 //------------------
 
 var grid = $('#grid');
-for(var i = 0; i < 9; i++) {
-  var row = $('<div class="row">');
-  grid.append(row);
+// for(var i = 0; i < 9; i++) {
+//   var row = $('<div class="row">');
+//   grid.append(row);
 
-  for(var j = 0; j < 9; j++) {
-    var column = $('<div class="column"></div>');
-    column
-      .on("dragover", allowDrop)
-      .on("drop", drop)
-      .on("click", selectElement);
-    row.append(column);
-  }
+//   for(var j = 0; j < 9; j++) {
+//     var column = $('<div class="column"></div>');
+//     column
+//       .on("dragover", allowDrop)
+//       .on("drop", drop)
+//       .on("click", selectElement);
+//     row.append(column);
+//   }
 
-  grid.append('</div>');
-}
+//   grid.append('</div>');
+// }
 
 $('.drag-element').on("dragstart", drag);
 
@@ -139,3 +140,59 @@ function selectElement(ev) {
 $('#rotate-acw').on('click', rotating);
 $('#rotate-cw').on('click', rotating);
 $('#delete-button').on('click', deleteElement)
+
+// D3 SVG Code
+var canvasContainer = d3.select(".main");
+var svg = canvasContainer.select("svg");
+var canvas = svg.append("g")
+    .attr("class", "canvas");
+
+var draggedElement = null;
+
+var drag = d3.behavior.drag();
+
+var components = d3.selectAll(".drag-element")
+    .call(drag);
+
+function dragstart() {
+  console.log("dragstart", d3.event);
+  var current = d3.select(this);
+  if (current.attr("class") == "component") {
+    draggedElement = current;
+  } else {
+    draggedElement = canvas.append("g")
+      .attr("class", "component")
+      .attr("transform", "translate(" + -40 + "," + -40 + ")")
+      .call(drag);
+    draggedElement.append("image")
+      .attr("width", 40)
+      .attr("height", 40)
+      .attr("xlink:href", current.node().src)
+  }
+}
+
+function dragmove() {
+  console.log("dragmove", d3.event);
+  var pos = d3.mouse(svg.node());
+  draggedElement
+    .attr("transform", "translate(" + (pos[0] - 20) + "," + (pos[1] - 20) + ")")
+}
+
+function dragend() {
+  console.log("dragend", d3.event);
+  draggedElement = null;
+}
+
+
+function resize() {
+  var bounds = canvasContainer.node().getBoundingClientRect();
+  svg.attr("width", bounds.width);
+  svg.attr("height", bounds.height);
+  console.log(bounds);
+}
+
+resize();
+
+drag.on("dragstart", dragstart);
+drag.on("drag", dragmove);
+drag.on("dragend", dragend);
