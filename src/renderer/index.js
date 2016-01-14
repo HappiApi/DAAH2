@@ -563,3 +563,8 @@ function renderProject(Project) {
   renderComponents(Project.components);
   renderWires(Project.wires);
 }
+
+// Scales the g element such that it can fit in the header
+function scaleSVG(canvas) {
+    canvas.attr("transform", "scale(0.3)");
+}
