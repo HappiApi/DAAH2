@@ -3,7 +3,7 @@ const d3 = require('d3');
 //const componentMap = require('../static.json');
 
 // BAD BAD GLOBALS
-var Project = ProjectFactory() 
+var Project = ProjectFactory()
 var storage = localStorage
 var projectID = null;
 
@@ -359,6 +359,7 @@ function deleteConnectedWires() {
   }
 }
 
+// NOT WORKING, NO TIME 
 function checkIfWireExists(components) {
   for(var i = 0; i < Project.wires.length; i++) {
     if(Project.wires[i]['connects'][0].split('-')[0] == components[0]['id']
@@ -381,7 +382,8 @@ function checkIfValidWire(closestComponent) {
     if(components[0]['id'] == components[1]['id']) {
       return false;
     }
-    return checkIfWireExists(components);
+    //return checkIfWireExists(components);
+    return true;
 }
 
 // Checks surroundings for components, then snaps to closest component
@@ -597,7 +599,7 @@ function createProject(projectID){
                     .attr("src","./images/example_circuit.png"));
   projects.append(html);
   }
-  
+
   // Store in local storage
   storage.setItem(projectID, JSON.stringify(Project))
 }
