@@ -180,7 +180,7 @@ function generateRightBar() {
          '" name="resistance">kΩ');
         container.append(form);
         form.on("input", setParam)
-          
+
       }
       else if(component['type'] == 'cell') {
         var form = $('<form action="">Volts:<input id="setParam" type="number" value="' + component['parameter'] +
@@ -361,6 +361,31 @@ function deleteConnectedWires() {
   }
 }
 
+function checkIfWireExists(components) {
+  for(var i = 0; i < Project.wires.length; i++) {
+    if(Project.wires[i]['connects'][0].split('-')[0] == components[0]['id']
+      && Project.wires[i]['connects'][1].split('-')[0] == components[1]['id']) {
+        return false;
+    }
+    else if(Project.wires[i]['connects'][0].split('-')[0] == components[1]['id']
+      && Project.wires[i]['connects'][1].split('-')[0] == components[0]['id']) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Checks if it is a valid wire by checking if the wire already
+// exists within the data of the wire connects the same component
+function checkIfValidWire(closestComponent) {
+  var components = [getComponentObject(draggedElement),
+    getComponentObject(d3.select(closestComponent))];
+    if(components[0]['id'] == components[1]['id']) {
+      return false;
+    }
+    return checkIfWireExists(components);
+}
+
 // Checks surroundings for components, then snaps to closest component
 function wiredragend() {
   var minDist = 1000;
@@ -379,12 +404,28 @@ function wiredragend() {
     draggedWire.remove();
   }
   else {
-    addWire(closestComponent, closestConnector);
-    draggedWire
-      .attr('x2', closestConnector['coordinates'][0])
-      .attr('y2', closestConnector['coordinates'][1]);
+    if(checkIfValidWire(closestComponent)) {
+      addWire(closestComponent, closestConnector);
+      draggedWire
+        .attr('x2', closestConnector['coordinates'][0])
+        .attr('y2', closestConnector['coordinates'][1]);
+    }
+    else {
+      draggedWire.remove();
+    }
+
   }
   draggedWire = null;
+}
+
+// Adds The wire to data
+function addWire(closestComponent, closestConnector) {
+  var components = [getComponentObject(draggedElement),
+    getComponentObject(d3.select(closestComponent))];
+    var wire = Wire(components[0]['id'] + "-" + draggedElementWireId, components[1]['id'] + "-" + closestConnector['type']);
+    Project.wires.push(wire);
+
+    draggedWire.attr('id', wire['connects'][0] + '-' + wire['connects'][1]);
 }
 
 
@@ -436,17 +477,6 @@ function dragmove() {
     moveConnectedWires(connectedWires, inOutCoor);
   }
 }
-
-// Adds The wire to data
-function addWire(closestComponent, closestConnector) {
-  var components = [getComponentObject(draggedElement),
-    getComponentObject(d3.select(closestComponent))];
-    var wire = Wire(components[0]['id'] + "-" + draggedElementWireId, components[1]['id'] + "-" + closestConnector['type']);
-    Project.wires.push(wire);
-
-    draggedWire.attr('id', wire['connects'][0] + '-' + wire['connects'][1]);
-}
-
 
 function dragend() {
   // Get position relative to SVG
