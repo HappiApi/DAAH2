@@ -30,7 +30,7 @@ function Component(name){
     orientation: 0,
     x: 0,
     y: 0,
-    parameter: null
+    parameter: 0
   };
 }
 
@@ -162,14 +162,18 @@ function generateRightBar(wire) {
       container.append('<h1>' + component['type'] + '</h1>');
 
       if(component['type'] == 'resistor') {
-        var form = $('<form action="">Resistance:<input type="number" value="' + component['parameter'] +
-         '" name="resistance">kΩ <input type="submit" value="Submit">');
+        var form = $('<form action="">Resistance:<input id="setParam" type="number" value="' + component['parameter'] +
+         '" name="resistance">kΩ');
         container.append(form);
+        form.on("input", setParam)
+          
       }
       else if(component['type'] == 'cell') {
-        var form = $('<form action="">Volts:<input type="number" value="' + component['parameter'] +
-        '" name="resistance">V  <input type="submit" value="Submit">');
-        container.append(form);
+        var form = $('<form action="">Volts:<input id="setParam" type="number" value="' + component['parameter'] +
+        '" name="resistance">V');
+        container.append(form)
+        form.on("input", setParam)
+
       }
       else if(component['type'] == 'switch') {
         var button = $('<button>Close</button>');
@@ -194,9 +198,13 @@ function generateRightBar(wire) {
   }
 }
 
+function setParam(){
+  getComponentObject(draggedElement).parameter = parseInt($(this).children("#setParam").val())
+}
 $('#rotate-acw').on('click', rotating);
 $('#rotate-cw').on('click', rotating);
 $('#delete-button').on('click', deleteElement)
+
 
 // D3 SVG Code
 // -----------------------------------------------

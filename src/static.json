@@ -1,0 +1,63 @@
+[
+	{
+		"type": "cell",
+		"connectors": {
+			"in": {"x": -8, "y": 0},
+			"out": {"x": 8, "y": 0}
+		},
+		"image": "../static/images/Cell.png",
+		"width": 150,
+		"height": 150
+	},
+	{
+		"type": "resistor",
+		"connectors": {
+			"in": {"x": -8, "y": 0},
+			"out": {"x": 8, "y": 0}
+		},
+		"image": "../static/images/Resistor.png",
+		"width": 150,
+		"height": 150
+	},
+	{
+		"type": "led",
+		"connectors": {
+			"in": {"x": -8, "y": 0},
+			"out": {"x": 8, "y": 0}
+		},
+		"image": "../static/images/LED.png",
+		"width": 150,
+		"height": 150
+	},
+	{
+		"type": "switch",
+		"connectors": {
+			"in": {"x": -8, "y": 0},
+			"out": {"x": 8, "y": 0}
+		},
+		"image": "../static/images/Switch.png",
+		"width": 150,
+		"height": 150
+	},
+	{
+		"type": "voltmeter",
+		"connectors": {
+			"in": {"x": -8, "y": 0},
+			"out": {"x": 8, "y": 0}
+		},
+		"image": "../static/images/Voltmeter.png",
+		"width": 150,
+		"height": 150
+	},
+	{
+		"type": "ammeter",
+		"connectors": {
+			"in": {"x": -8, "y": 0},
+			"out": {"x": 8, "y": 0}
+		},
+		"image": "../static/images/Ammeter.png",
+		"width": 150,
+		"height": 150
+	}
+
+]
