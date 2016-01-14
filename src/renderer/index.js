@@ -590,22 +590,30 @@ function loadProject(projectID){
 }
 
 function saveProject(projectID){
-
   // check if project exists
   if(storage.getItem(projectID) == null){
+
+  // Store in local storage
+  storage.setItem(projectID, JSON.stringify(Project))
   // Create visual element on header
+  createProjectThumb(projectID)
+  }
+
+  else{
+    // Store in local storage
+    storage.setItem(projectID, JSON.stringify(Project))
+  }
+}
+
+function createProjectThumb(projectID){
   var projects = $("#projects")
   var html = $("<div/>")
           .addClass("project")
           .attr("id", projectID)
           .append($("<div/>"))
           .append($("<img/>")
-                    .attr("src","./images/example_circuit.png"));
+                    .attr("src","./images/example_circuit.png"))
   projects.append(html);
-  }
-
-  // Store in local storage
-  storage.setItem(projectID, JSON.stringify(Project))
 }
 
 function createProject(){
@@ -637,6 +645,12 @@ function generateRandom(){
           });
 }
 
+function populateProjects(){
+  for(var i=0; i<storage.length; i++){
+    createProjectThumb(storage.key(i).name)
+  }
+}
+
 $("#save-project").on("click", function(){
   saveProject(Project.name);
 })
@@ -648,3 +662,8 @@ $("#delete-project").on("click", function(){
 $(".add_project").on("click", function(){
   createProject()
 })
+$("#projects").on("click", ".project", function(){
+  loadProject(this.id)
+})
+
+window.onload = populateProjects
