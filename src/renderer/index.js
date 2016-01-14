@@ -2,7 +2,6 @@ const $ = require('jquery');
 const d3 = require('d3');
 //const componentMap = require('../static.json');
 
-
 // BAD BAD GLOBALS
 var Project = {
   name: "TESTI",
@@ -44,6 +43,15 @@ function getComponentObject(d3Object) {
   for(var i = 0; i < Project.components.length; i++) {
     if(Project.components[i] != null &&
       Project.components[i].id == d3Object.attr("id")) {
+      return Project.components[i];
+    }
+  }
+  return null;
+}
+
+function getComponentById(id) {
+  for(var i = 0; i < Project.components.length; i++) {
+    if(Project.components[i].id == id) {
       return Project.components[i];
     }
   }
@@ -132,7 +140,7 @@ function rotating(ev) {
 function deleteElement(ev) {
   if(selectedWire != null) {
     for(var i = 0; i < Project.wires.length; i++) {
-      id = Project.wires[i]['connects'][0] + '-' + Project.wires[i]['connects'][1];
+      var id = Project.wires[i]['connects'][0] + '-' + Project.wires[i]['connects'][1];
       if(id == selectedWire.attr("id")) {
         Project.components.splice(i, 1);
       }
@@ -352,7 +360,7 @@ function wiredragend() {
   var closestComponent = null;
 
   d3.selectAll('.component').each(function(d) {
-    connector = checkIfConnector(d3.select(this), 20);
+    var connector = checkIfConnector(d3.select(this), 20);
     if(connector != null && connector['dist'] < minDist) {
       minDist = connector.dist;
       closestConnector = connector;
@@ -399,7 +407,7 @@ function dragstart() {
     draggedElement.append("image")
       .attr("width", 40)
       .attr("height", 40)
-      .attr("xlink:href", current.node().src)
+      .attr("xlink:href", current.node().src);
   }
   generateRightBar();
 }
@@ -425,7 +433,7 @@ function dragmove() {
 function addWire(closestComponent, closestConnector) {
   var components = [getComponentObject(draggedElement),
     getComponentObject(d3.select(closestComponent))];
-    wire = Wire(components[0]['id'] + "-" + draggedElementWireId, components[1]['id'] + "-" + closestConnector['type']);
+    var wire = Wire(components[0]['id'] + "-" + draggedElementWireId, components[1]['id'] + "-" + closestConnector['type']);
     Project.wires.push(wire);
 
     draggedWire.attr('id', wire['connects'][0] + '-' + wire['connects'][1]);
@@ -461,3 +469,59 @@ $(window).resize(resize);
 drag.on("dragstart", dragstart);
 drag.on("drag", dragmove);
 drag.on("dragend", dragend);
+
+// Rendering project from data code
+// -----------------------------------------------
+
+function emptyProject() {
+  svg.selectAll('*').remove();
+  canvas = svg.append("g")
+        .attr("class", "canvas");
+}
+
+function renderComponents(components) {
+  let componentLength = components.length;
+  for(var i = 0; i < componentLength; i++) {
+    var element = canvas.append("g")
+      .attr("class", "component")
+      .attr("id", components[i]['id'])
+      .call(drag);
+
+    transform(element, components[i]['x'], components[i]['y'], components[i]['orientation'] * 90);
+
+    element.append("image")
+      .attr("width", 40)
+      .attr("height", 40)
+      .attr("xlink:href", "../static/images/" + components[i]['type'] + ".png");
+  }
+}
+
+function getWireCoordinates(wire) {
+  var ids = [wire['connects'][0].split('-')[0], wire['connects'][1].split('-')[0]];
+  var componentObjects = [d3.select('#' + ids[0]), d3.select('#' + ids[1])];
+  var inOutCoor = [getInOutCoor(componentObjects[0]), getInOutCoor(componentObjects[1])];
+  return [(wire['connects'][0].split('-')[1] == 'in') ? inOutCoor[0][0] : inOutCoor[0][1],
+    (wire['connects'][1].split('-')[1] == 'in') ? inOutCoor[1][0] : inOutCoor[1][1]]
+}
+
+function renderWires(wires) {
+  let wiresLength = wires.length;
+  for(var i = 0; i < wiresLength; i++) {
+    var coor = getWireCoordinates(wires[i]);
+    var wire = canvas.append("line")
+      .attr("x1", coor[0][0])
+      .attr("y1", coor[0][1])
+      .attr("x2", coor[1][0])
+      .attr("y2", coor[1][1])
+      .attr("stroke", "black")
+      .attr("stroke-width", "2")
+      .attr("class", "wire")
+      .on("click", displayWire);
+  }
+}
+
+function renderProject(Project) {
+  emptyProject();
+  renderComponents(Project.components);
+  renderWires(Project.wires);
+}

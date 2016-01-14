@@ -18,6 +18,7 @@
   "author": "DAAH",
   "license": "MIT",
   "devDependencies": {
+    "electron-prebuilt-compile": "^0.36.1",
     "electron-prebuilt": "^0.36.3"
   },
   "dependencies": {
