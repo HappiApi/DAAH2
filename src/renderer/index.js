@@ -14,7 +14,6 @@ var componentCount = 0
 var draggedElement = null;
 var draggedElementWireId = null; // Used for wires to see if it was connected to in/out
 var draggedWire = null;
-var currentWire = null;
 var selectedWire = null;
 
 // Debug
@@ -133,7 +132,8 @@ function rotating(ev) {
 function deleteElement(ev) {
   if(selectedWire != null) {
     for(var i = 0; i < Project.wires.length; i++) {
-      if(Project.wires[i].id == d3Object.attr("id")) {
+      id = Project.wires[i]['connects'][0] + '-' + Project.wires[i]['connects'][1];
+      if(id == selectedWire.attr("id")) {
         Project.components.splice(i, 1);
       }
     }
@@ -153,7 +153,13 @@ function deleteElement(ev) {
   generateRightBar();
 }
 
-function generateRightBar(wire) {
+function displayWire() {
+  draggedElement = null;
+  selectedWire = d3.select(this);
+  generateRightBar();
+}
+
+function generateRightBar() {
   var container = $('#component-specific');
   container.empty();
   if(draggedElement != null) {
@@ -193,7 +199,7 @@ function generateRightBar(wire) {
       }
     }
   }
-  else if(currentWire != null) {
+  else if(selectedWire != null) {
     container.append('<h1>Wire</h1>');
   }
 }
@@ -230,7 +236,8 @@ function createWire(coor) {
     .attr("y2", coor[1])
     .attr("stroke", "black")
     .attr("stroke-width", "2")
-    .attr("class", "wire");
+    .attr("class", "wire")
+    .on("click", displayWire);
 }
 
 // Gets the coordinates of in/out of d3 objects
@@ -328,7 +335,7 @@ function findConnectedWires() {
 // Deletes the wire object
 function deleteWire(id) {
   Project.wires.forEach(function(e,i,a) {
-    if(e.id == id) {
+    if(e['connects'][0] + '-' + e['connects'][1] == id) {
       Project.wires.splice(i, 1);
     }
   });
@@ -386,10 +393,6 @@ function dragstart() {
     }
     draggedElement = current;
   }
-  //else if(current.attr("class") == "wire") {
-  //  selectedWire = current;
-  //  console.log("Test2");
-  //}
   // First time it is dragged, so create new object for component
   else {
     // Create new Component and save it in Project
@@ -418,7 +421,7 @@ function dragmove() {
       .attr("y2", pos[1]);
   }
   // Make sure that a wire is not selected
-  else if(selectedWire == null) {
+  else {
     transformCoor(draggedElement, pos[0], pos[1]);
     var inOutCoor = getInOutCoor(draggedElement);
     var connectedWires = findConnectedWires();
@@ -462,7 +465,7 @@ function resize() {
 
 resize();
 
-//$(window).resize(resize);
+$(window).resize(resize);
 drag.on("dragstart", dragstart);
 drag.on("drag", dragmove);
 drag.on("dragend", dragend);
