@@ -39,11 +39,12 @@ html, body {
   border-radius: 25px;
   margin-right: 5px;
   margin-left: 5px;
+  z-index: 99;
 }
 
 .add_project {
   height: 75px;
-  pointer-events: none
+  z-index: 99;
 }
 
 .project div {

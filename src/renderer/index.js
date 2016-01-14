@@ -579,17 +579,21 @@ function ProjectFactory(){
 }
 
 function loadProject(projectID){
-  project = JSON.parse(storage.getItem(projectID))
-  return project
+  //Get project from storage
+  var project = JSON.parse(storage.getItem(projectID))
+  //Set current project to loaded project
+  Project = project
+  //Re draw
+  renderProject(project)
 }
 
-function createProject(projectID){
+function saveProject(projectID){
 
   // check if project exists
   if(storage.getItem(projectID) == null){
   // Create visual element on header
-  projects = $("#projects")
-  html = $("<div/>")
+  var projects = $("#projects")
+  var html = $("<div/>")
           .addClass("project")
           .attr("id", projectID)
           .append($("<div/>"))
@@ -602,13 +606,23 @@ function createProject(projectID){
   storage.setItem(projectID, JSON.stringify(Project))
 }
 
+function createProject(){
+  // Create and set new Project 
+  Project = ProjectFactory()
+  //Remove any unsaved visual elements
+  emptyProject()
+
+  saveProject(Project.name)
+}
+
 function deleteProject(projectID){
   // Remove visual element from header
   $("#"+projectID).remove()
 
   // Remove from storage
   storage.removeItem(projectID)
-
+  // Remove visual elements
+  emptyProject()
   //Generate new Project
   Project = ProjectFactory()
 }
@@ -622,9 +636,13 @@ function generateRandom(){
 }
 
 $("#save-project").on("click", function(){
-  createProject(Project.name);
+  saveProject(Project.name);
 })
 
 $("#delete-project").on("click", function(){
   deleteProject(Project.name)
+})
+
+$(".add_project").on("click", function(){
+  createProject()
 })
