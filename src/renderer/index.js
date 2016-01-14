@@ -3,11 +3,9 @@ const d3 = require('d3');
 //const componentMap = require('../static.json');
 
 // BAD BAD GLOBALS
-var Project = {
-  name: "TESTI",
-  components: [],
-  wires: []
-};
+var Project = ProjectFactory() 
+var storage = localStorage
+var projectID = null;
 
 var componentCount = 0
 var draggedElement = null;
@@ -17,7 +15,7 @@ var selectedWire = null;
 
 // Debug
 // window.componentMap = componentMap
-window.Project = Project
+//window.Project = Project
 window.draggedElement = draggedElement
 
 // Component Creation
@@ -568,3 +566,65 @@ function renderProject(Project) {
 function scaleSVG(canvas) {
     canvas.attr("transform", "scale(0.3)");
 }
+
+// Storage
+// -----------------------------------------------
+
+function ProjectFactory(){
+  return  {
+            name: generateRandom(),
+            components: [],
+            wires: []
+          };
+}
+
+function loadProject(projectID){
+  project = JSON.parse(storage.getItem(projectID))
+  return project
+}
+
+function createProject(projectID){
+
+  // check if project exists
+  if(storage.getItem(projectID) == null){
+  // Create visual element on header
+  projects = $("#projects")
+  html = $("<div/>")
+          .addClass("project")
+          .attr("id", projectID)
+          .append($("<div/>"))
+          .append($("<img/>")
+                    .attr("src","./images/example_circuit.png"));
+  projects.append(html);
+  }
+  
+  // Store in local storage
+  storage.setItem(projectID, JSON.stringify(Project))
+}
+
+function deleteProject(projectID){
+  // Remove visual element from header
+  $("#"+projectID).remove()
+
+  // Remove from storage
+  storage.removeItem(projectID)
+
+  //Generate new Project
+  Project = ProjectFactory()
+}
+
+function generateRandom(){
+  //src : http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = crypto.getRandomValues(new Uint8Array(1))[0]%16|0, v = c == 'x' ? r : (r&0x3|0x8);
+            return v.toString(16);
+          });
+}
+
+$("#save-project").on("click", function(){
+  createProject(Project.name);
+})
+
+$("#delete-project").on("click", function(){
+  deleteProject(Project.name)
+})
