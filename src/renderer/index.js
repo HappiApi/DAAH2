@@ -14,6 +14,8 @@ var componentCount = 0
 var draggedElement = null;
 var draggedElementWireId = null; // Used for wires to see if it was connected to in/out
 var draggedWire = null;
+var currentWire = null;
+var selectedWire = null;
 
 // Debug
 // window.componentMap = componentMap
@@ -49,6 +51,14 @@ function getComponentObject(d3Object) {
   return null;
 }
 
+function getWireObject(d3Object) {
+  for(var i = 0; i < Project.wires.length; i++) {
+    if(Project.wires[i].id == d3Object.attr("id")) {
+      return Projects.wires[i];
+    }
+  }
+}
+
 // Transform functions
 // -----------------------------------------------
 
@@ -61,7 +71,7 @@ function transformCoor(obj, x, y) {
   var bounds = canvasContainer.node().getBoundingClientRect();
   if(x < 0) { x = 20; }
   if(y < 0) { y = 20; }
-  if(x > bounds.width) { x = bounds.width - 30; }
+  if(x > bounds.width) { x = bounds.width - 20; }
   if(y > bounds.height) { y = bounds.height - 20; }
 
   obj
@@ -70,11 +80,16 @@ function transformCoor(obj, x, y) {
 }
 
 function transformAngle(obj, angle) {
-  angle = angle % 360;
+  // Find current X and Y
   var translate = d3.transform(obj.attr("transform"))['translate'];
 
   obj.attr("transform", "translate(" + translate[0] + "," + translate[1] + ") rotate("
    + angle + ", " + 0 + "," + 0 +")");
+
+   //Move all wires connect to obj when rotating
+   var inOutCoor = getInOutCoor(draggedElement);
+   var connectedWires = findConnectedWires();
+   moveConnectedWires(connectedWires, inOutCoor);
 }
 
 function transform(obj, x, y, angle) {
@@ -111,21 +126,34 @@ function rotating(ev) {
     var rotation = ((getRotationAngle(draggedElement) - 90) % 360);
   }
   transformAngle(draggedElement, rotation);
+  //Sets orientation of Component Object ONE LINER BITCHES
+  getComponentObject(draggedElement).orientation = (rotation/90);
 }
 
 function deleteElement(ev) {
-  deleteConnectedWires();
-  Project.components.forEach(function(e,i,a) {
-    if(e.id == draggedElement.attr("id")) {
-      delete Project.components[i];
+  if(selectedWire != null) {
+    for(var i = 0; i < Project.wires.length; i++) {
+      if(Project.wires[i].id == d3Object.attr("id")) {
+        Project.components.splice(i, 1);
+      }
     }
-  });
-  $(draggedElement.node()).remove();
-  draggedElement = null;
+    selectedWire.remove();
+    selectedWire = null;
+  }
+  else {
+    deleteConnectedWires();
+    Project.components.forEach(function(e,i,a) {
+      if(e.id == draggedElement.attr("id")) {
+        Project.components.splice(i, 1);
+      }
+    });
+    $(draggedElement.node()).remove();
+    draggedElement = null;
+  }
   generateRightBar();
 }
 
-function generateRightBar() {
+function generateRightBar(wire) {
   var container = $('#component-specific');
   container.empty();
   if(draggedElement != null) {
@@ -160,7 +188,9 @@ function generateRightBar() {
         container.append(measurement);
       }
     }
-
+  }
+  else if(currentWire != null) {
+    container.append('<h1>Wire</h1>');
   }
 }
 
@@ -182,6 +212,8 @@ var components = d3.selectAll(".drag-element")
 
 // D3 Wire Drawing Code
 // -----------------------------------------------
+
+//Takes x,y draws line
 function createWire(coor) {
   draggedWire = canvas.append("line")
     .attr("x1", coor[0])
@@ -189,7 +221,8 @@ function createWire(coor) {
     .attr("x2", coor[0])
     .attr("y2", coor[1])
     .attr("stroke", "black")
-    .attr("stroke-width", "2");
+    .attr("stroke-width", "2")
+    .attr("class", "wire");
 }
 
 // Gets the coordinates of in/out of d3 objects
@@ -219,6 +252,7 @@ function getInOutCoor(obj) {
 }
 
 // Checks if the current mouse position is close to a connector/terminal
+// return either null for no or object contain terminal info
 function checkIfConnector(obj, radius) {
   var inOutCoor = getInOutCoor(obj);
   var inCoor = inOutCoor[0];
@@ -283,14 +317,16 @@ function findConnectedWires() {
   return connectedWires
 }
 
+// Deletes the wire object
 function deleteWire(id) {
   Project.wires.forEach(function(e,i,a) {
     if(e.id == id) {
-      delete Project.wires[i];
+      Project.wires.splice(i, 1);
     }
   });
 }
 
+// DELETE ALL THE WIRES GIF
 function deleteConnectedWires() {
   var connectedWires = findConnectedWires();
   for(var i = 0; i < connectedWires.length; i++) {
@@ -342,6 +378,10 @@ function dragstart() {
     }
     draggedElement = current;
   }
+  //else if(current.attr("class") == "wire") {
+  //  selectedWire = current;
+  //  console.log("Test2");
+  //}
   // First time it is dragged, so create new object for component
   else {
     // Create new Component and save it in Project
@@ -369,7 +409,8 @@ function dragmove() {
       .attr("x2", pos[0])
       .attr("y2", pos[1]);
   }
-  else {
+  // Make sure that a wire is not selected
+  else if(selectedWire == null) {
     transformCoor(draggedElement, pos[0], pos[1]);
     var inOutCoor = getInOutCoor(draggedElement);
     var connectedWires = findConnectedWires();
@@ -405,7 +446,6 @@ function dragend() {
   }
 }
 
-
 function resize() {
   var bounds = canvasContainer.node().getBoundingClientRect();
   svg.attr("width", bounds.width);
@@ -414,7 +454,7 @@ function resize() {
 
 resize();
 
-$(window).resize(resize);
+//$(window).resize(resize);
 drag.on("dragstart", dragstart);
 drag.on("drag", dragmove);
 drag.on("dragend", dragend);
