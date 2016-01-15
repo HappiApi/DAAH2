@@ -173,3 +173,8 @@ svg rect {
 #delete-button:active {
   color: #990000;
 }
+
+.help-text{
+  font-size: 80%;
+  margin: 5px;
+}
