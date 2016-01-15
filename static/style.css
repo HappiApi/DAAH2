@@ -39,6 +39,8 @@ html, body {
   border-radius: 25px;
   margin-right: 5px;
   margin-left: 5px;
+  width: 150px;
+  height: 100px;
   z-index: 99;
 }
 

@@ -359,7 +359,7 @@ function deleteConnectedWires() {
   }
 }
 
-// NOT WORKING, NO TIME 
+// NOT WORKING, NO TIME
 function checkIfWireExists(components) {
   for(var i = 0; i < Project.wires.length; i++) {
     if(Project.wires[i]['connects'][0].split('-')[0] == components[0]['id']
@@ -564,9 +564,107 @@ function renderProject(Project) {
   renderWires(Project.wires);
 }
 
-// Scales the g element such that it can fit in the header
-function scaleSVG(canvas) {
-    canvas.attr("transform", "scale(0.3)");
+
+// Render Small grid functions
+// -----------------------------------------------
+
+function emptySmallProject(canvas) {
+  canvas.selectAll('*').remove();
+}
+
+function renderSmallComponents(components, canvas) {
+  let componentLength = components.length;
+  let topLeftCoor = [1000, 1000];
+  for(var i = 0; i < componentLength; i++) {
+    var element = canvas.append("g")
+      .attr("class", "small-component")
+      .attr("id", Project.id + components[i]['id']);
+
+    transform(element, components[i]['x'], components[i]['y'], components[i]['orientation'] * 90);
+
+    element.append("image")
+      .attr("width", 40)
+      .attr("height", 40)
+      .attr("xlink:href", "../static/images/" + components[i]['type'] + ".png");
+
+    if(components[i]['x'] < topLeftCoor[0]) { topLeftCoor[0] = components[i]['x']; }
+    if(components[i]['y'] < topLeftCoor[1]) { topLeftCoor[1] = components[i]['y']; }
+  }
+  return topLeftCoor;
+}
+
+function getSmallWireCoordinates(wire) {
+  var ids = [wire['connects'][0].split('-')[0], wire['connects'][1].split('-')[0]];
+  var componentObjects = [d3.select('#' + Project.id + ids[0]), d3.select('#' + Project.id + ids[1])];
+  var inOutCoor = [getInOutCoor(componentObjects[0]), getInOutCoor(componentObjects[1])];
+  return [(wire['connects'][0].split('-')[1] == 'in') ? inOutCoor[0][0] : inOutCoor[0][1],
+    (wire['connects'][1].split('-')[1] == 'in') ? inOutCoor[1][0] : inOutCoor[1][1]]
+}
+
+function renderSmallWires(wires, canvas) {
+  let wiresLength = wires.length;
+  for(var i = 0; i < wiresLength; i++) {
+    var coor = getSmallWireCoordinates(wires[i]);
+    var wire = canvas.append("line")
+      .attr("x1", coor[0][0])
+      .attr("y1", coor[0][1])
+      .attr("x2", coor[1][0])
+      .attr("y2", coor[1][1])
+      .attr("stroke", "black")
+      .attr("stroke-width", "2")
+      .attr("class", "small-wire");
+  }
+}
+
+function renderSmallSVG(Project, canvas) {
+  emptySmallProject(canvas);
+  var topLeftCoor = renderSmallComponents(Project.components, canvas);
+  renderSmallWires(Project.wires, canvas);
+  return topLeftCoor;
+}
+
+// Storage Visuals
+// -----------------------------------------------
+
+function drawingSmallSVG(smallCanvas) {
+  var topLeftCoor = renderSmallSVG(Project, smallCanvas);
+  var bounds = canvas.node().getBoundingClientRect();
+  var minimum = 150.0 / bounds.width;
+  var heightBound = 100.0 / bounds.height;
+
+  if(heightBound < minimum) { minimum = heightBound; }
+  if(minimum == Infinity) { minimum = 0.5; }
+
+  smallCanvas
+    .attr("transform",  "scale(" + minimum + ")" + "translate(" + (0) + ", " +
+    (0) + ")");
+
+  var clientRect = [smallCanvas.node().getBoundingClientRect(),
+    $(smallCanvas.node()).parent()[0].getBoundingClientRect()];
+  var bounds = [-(Math.abs(clientRect[0].left - clientRect[1].left)),
+    -(Math.abs(clientRect[0].top - clientRect[1].top))];
+
+
+  smallCanvas
+    .attr("transform",  "scale(" + minimum + ")" + "translate(" + (bounds[0]) + ", " +
+    (bounds[1]) + ")");
+}
+
+function createNewProjectHead(projectID) {
+  var html = $("<div/>")
+    .addClass("project")
+    .attr("id", projectID)
+    .append("<div/>");
+
+  $('#projects').append(html);
+
+  var smallSvg = d3.select(html[0])
+    .append("svg")
+    .attr("width", 150)
+    .attr("height", 100);
+
+  return smallSvg.append("g")
+    .attr('class', 'small-canvas');
 }
 
 // Storage
@@ -582,59 +680,37 @@ function ProjectFactory(){
 
 function loadProject(projectID){
   //Get project from storage
-  var project = JSON.parse(storage.getItem(projectID))
-  //Set current project to loaded project
-  Project = project
-  //Re draw
-  renderProject(project)
+  var project = JSON.parse(storage.getItem(projectID));
+  Project = project;
+  renderProject(project);
 }
 
 function saveProject(projectID){
-  // check if project exists
-  if(storage.getItem(projectID) == null){
-
-  // Store in local storage
-  storage.setItem(projectID, JSON.stringify(Project))
-  // Create visual element on header
-  createProjectThumb(projectID)
+  if(storage.getItem(projectID) == null) {
+    var smallCanvas = createNewProjectHead(projectID);
   }
-
-  else{
-    // Store in local storage
-    storage.setItem(projectID, JSON.stringify(Project))
+  else {
+    var smallCanvas = d3.select(document.getElementById(projectID))
+      .select('svg')
+      .select('.small-canvas');
   }
-}
-
-function createProjectThumb(projectID){
-  var projects = $("#projects")
-  var html = $("<div/>")
-          .addClass("project")
-          .attr("id", projectID)
-          .append($("<div/>"))
-          .append($("<img/>")
-                    .attr("src","./images/example_circuit.png"))
-  projects.append(html);
+  drawingSmallSVG(smallCanvas);
+  storage.setItem(projectID, JSON.stringify(Project));
 }
 
 function createProject(){
-  // Create and set new Project 
-  Project = ProjectFactory()
-  //Remove any unsaved visual elements
-  emptyProject()
-
-  saveProject(Project.name)
+  Project = ProjectFactory();
+  emptyProject();
+  saveProject(Project.name);
 }
 
 function deleteProject(projectID){
-  // Remove visual element from header
-  $("#"+projectID).remove()
+  $("#"+projectID).remove();
+  storage.removeItem(projectID);
 
-  // Remove from storage
-  storage.removeItem(projectID)
   // Remove visual elements
-  emptyProject()
-  //Generate new Project
-  Project = ProjectFactory()
+  emptyProject();
+  Project = ProjectFactory();
 }
 
 function generateRandom(){
@@ -647,17 +723,23 @@ function generateRandom(){
 
 function populateProjects(){
   for(var i=0; i<storage.length; i++){
-    createProjectThumb(storage.key(i).name)
+    var project = JSON.parse(storage.getItem(storage.key(i)));
+    Project = project;
+    if(Project.components == null) { continue; }
+    var smallCanvas = createNewProjectHead(storage.key(i));
+    drawingSmallSVG(smallCanvas);
+    storage.setItem(projectID, JSON.stringify(storage.key(i)));
   }
+  Project = ProjectFactory();
 }
 
 $("#save-project").on("click", function(){
   saveProject(Project.name);
-})
+});
 
 $("#delete-project").on("click", function(){
-  deleteProject(Project.name)
-})
+  deleteProject(Project.name);
+});
 
 $(".add_project").on("click", function(){
   createProject()
