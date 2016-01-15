@@ -655,7 +655,6 @@ function createNewProjectHead(projectID) {
   var html = $("<div/>")
     .addClass("project")
     .attr("id", projectID)
-    .append("<div/>");
 
   $('#projects').append(html);
 
