@@ -554,6 +554,7 @@ function renderWires(wires) {
       .attr("stroke", "black")
       .attr("stroke-width", "2")
       .attr("class", "wire")
+      .attr("id", wires[i]['connects'][0] + '-' + wires[i]['connects'][1])
       .on("click", displayWire);
   }
 }
@@ -646,7 +647,7 @@ function drawingSmallSVG(smallCanvas) {
 
 
   smallCanvas
-    .attr("transform",  "scale(" + minimum + ")" + "translate(" + (bounds[0]) + ", " +
+    .attr("transform",  "scale(" + 0.5 + ")" + "translate(" + (bounds[0]) + ", " +
     (bounds[1]) + ")");
 }
 
