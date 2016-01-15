@@ -328,7 +328,7 @@ export default function solve(project) {
 
   let nodes = extractNodalParameters(combinedResistor);
 
-  console.log(nodes);
+  // console.log(nodes);
 
   return voltmeters.map(voltmeter => {
 
@@ -336,7 +336,7 @@ export default function solve(project) {
       voltage,
       current,
       resistance
-    } = _.find(nodes, ({ between }) => sameArrayElements(between, _.values(voltmeter.connectors)));
+    } = _.find(nodes, ({ between }) => sameArrayElements(between, _.values(voltmeter.connectors))) || {};
 
     return {
       id: voltmeter.id,

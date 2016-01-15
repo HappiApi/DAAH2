@@ -2,7 +2,7 @@
 const $ = require('jquery');
 const d3 = require('d3');
 
-import solver from "./solver";
+import solve from "./solver";
 
 class ProjectFactory {
   constructor(name=generateRandom(), components=[], wires=[]){
@@ -82,6 +82,8 @@ class Component{
     this.orientation = 0;
     this.x = 0;
     this.y = 0;
+    this.resistance = 0;
+    this.current = 0;
     if(name == "resistor") {
       this.parameter = 1;
     }
@@ -245,9 +247,9 @@ function generateRightBar() {
   if(draggedElement != null) {
     var component = Project.getComponentObject(draggedElement);
     if(component != null) {
-      container.append('<h1>' + component['type'] + '</h1>');
 
       if(component['type'] == 'resistor') {
+      container.append('<h1>' + component['type'] + '</h1>');
         var form = $('<form action="">Resistance:<input id="setParam" type="number" value="' + component['parameter'] +
          '" name="resistance">kΩ');
         container.append(form);
@@ -255,6 +257,7 @@ function generateRightBar() {
 
       }
       else if(component['type'] == 'cell') {
+        container.append('<h1>' + component['type'] + '</h1>');
         var form = $('<form action="">Volts:<input id="setParam" type="number" value="' + component['parameter'] +
         '" name="resistance">V');
         container.append(form)
@@ -262,20 +265,27 @@ function generateRightBar() {
 
       }
       else if(component['type'] == 'switch') {
+        container.append('<h1>' + component['type'] + '</h1>');
         var button = $('<button>Close</button>');
         container.append(button);
       }
       else if(component['type'] == 'ammeter') {
+        container.append('<h1>' + component['type'] + '</h1>');
         var result = 10;
         var measurement = $('<div><b>Result:</b></div><div id="measurement-result">' + component['parameter']
          + ' kΩ</div>');
         container.append(measurement);
       }
       else if(component['type'] == 'voltmeter') {
+        container.append('<h1>' + 'Unimeter' + '</h1>');
         var result = 10;
-        var measurement = $('<div><b>Result:</b></div><div id="measurement-result">' + component['parameter']
+        var measurement = $('<div><b>Voltage:</b></div><div id="measurement-result">' + component['parameter']
          + ' V</div>');
-        container.append(measurement);
+        var measurement2 = $('<div><b>Resistance:</b></div><div id="measurement-result2">' + component['resistance']
+          + ' Ω</div>');
+        var measurement3 = $('<div><b>Current:</b></div><div id="measurement-result3">' + component['current']
+           + ' amps</div>');
+        container.append(measurement).append(measurement2).append(measurement3);
       }
     }
   }
@@ -285,7 +295,8 @@ function generateRightBar() {
 }
 
 function setParam(){
-  Project.getComponentObject(draggedElement).parameter = parseInt($(this).children("#setParam").val())
+  Project.getComponentObject(draggedElement).parameter = parseInt($(this).children("#setParam").val());
+  updateMeters();
 }
 $('#rotate-acw').on('click', rotating);
 $('#rotate-cw').on('click', rotating);
@@ -567,6 +578,20 @@ function dragend() {
       }
     });
   }
+  updateMeters();
+}
+
+function updateMeters() {
+  let meters = solve(Project);
+  if (meters != null) meters.forEach(({ id, voltage, current, resistance }) => {
+    if (!isNaN(voltage)) {
+      let voltmeter = Project.getComponentById(id);
+      voltmeter.parameter = voltage;
+      voltmeter.current = current;
+      voltmeter.resistance = resistance;
+    }
+  });
+  generateRightBar();
 }
 
 function resize() {
@@ -825,3 +850,4 @@ $("#projects").on("click", ".project", function(){
 
 window.onload = populateProjects
 window.Project = function(){return Project};
+updateMeters();
