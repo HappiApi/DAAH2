@@ -24,37 +24,6 @@ const componentAttrs = {
   }
 }
 
-// =============================================================================
-// FOR TESTING
-
-const project = {
-  components: [
-    { id: "V1", type: "cell",     parameter: 10 },
-    { id: "R1", type: "resistor", parameter: 1 },
-    { id: "R2", type: "resistor", parameter: 2 },
-    { id: "R3", type: "resistor", parameter: 1 },
-    { id: "R4", type: "resistor", parameter: 2 },
-    { id: "R5", type: "resistor", parameter: 5 },
-    { id: "VMETER", type: "voltmeter" }
-  ],
-  wires: [
-    { connects: ["V1-in", "R5-out"] },
-    { connects: ["R5-in", "R1-out"] },
-    { connects: ["R2-out", "R1-in"] },
-    { connects: ["R2-in", "R3-out"] },
-    { connects: ["R2-in", "R4-out"] },
-    { connects: ["V1-out", "R3-in"] },
-    { connects: ["V1-out", "R4-in"] },
-    { connects: ["R2-in", "VMETER-in"] },
-    { connects: ["R2-out", "VMETER-out"] }
-  ]
-}
-
-const graph = {
-  components: [
-    { id: "V1", type: "cell", parameter: 10, connectors: { in: null, out: null } }
-  ]
-}
 
 // =============================================================================
 // BEWARE! Actual code follows.
