@@ -44,6 +44,32 @@ class ProjectFactory {
     }
   }
 
+  getComponentObject(d3Object) {
+    for(var i = 0; i < this.components.length; i++) {
+      if(this.components[i] != null &&
+        this.components[i].id == d3Object.attr("id")) {
+        return this.components[i];
+      }
+    }
+    return null;
+  }
+
+  getComponentById(id) {
+    for(var i = 0; i < this.components.length; i++) {
+      if(this.components[i].id == id) {
+        return this.components[i];
+      }
+    }
+    return null;
+  }
+
+  getWireObject(d3Object) {
+    for(var i = 0; i < this.wires.length; i++) {
+      if(this.wires[i].id == d3Object.attr("id")) {
+        return this.wires[i];
+      }
+    }
+  }
 
 }
 
@@ -75,32 +101,32 @@ var draggedWire = null;
 var selectedWire = null;
 
 // Gets component object from d3 object
-function getComponentObject(d3Object) {
-  for(var i = 0; i < Project.components.length; i++) {
-    if(Project.components[i] != null &&
-      Project.components[i].id == d3Object.attr("id")) {
-      return Project.components[i];
-    }
-  }
-  return null;
-}
+// function getComponentObject(d3Object) {
+//   for(var i = 0; i < Project.components.length; i++) {
+//     if(Project.components[i] != null &&
+//       Project.components[i].id == d3Object.attr("id")) {
+//       return Project.components[i];
+//     }
+//   }
+//   return null;
+// }
 
-function getComponentById(id) {
-  for(var i = 0; i < Project.components.length; i++) {
-    if(Project.components[i].id == id) {
-      return Project.components[i];
-    }
-  }
-  return null;
-}
+// function getComponentById(id) {
+//   for(var i = 0; i < Project.components.length; i++) {
+//     if(Project.components[i].id == id) {
+//       return Project.components[i];
+//     }
+//   }
+//   return null;
+// }
 
-function getWireObject(d3Object) {
-  for(var i = 0; i < Project.wires.length; i++) {
-    if(Project.wires[i].id == d3Object.attr("id")) {
-      return Projects.wires[i];
-    }
-  }
-}
+// function getWireObject(d3Object) {
+//   for(var i = 0; i < Project.wires.length; i++) {
+//     if(Project.wires[i].id == d3Object.attr("id")) {
+//       return Projects.wires[i];
+//     }
+//   }
+// }
 
 // Transform functions
 // -----------------------------------------------
@@ -170,7 +196,7 @@ function rotating(ev) {
   }
   transformAngle(draggedElement, rotation);
   //Sets orientation of Component Object ONE LINER BITCHES
-  getComponentObject(draggedElement).orientation = (rotation/90);
+  Project.getComponentObject(draggedElement).orientation = (rotation/90);
 }
 
 function deleteElement(ev) {
@@ -207,7 +233,7 @@ function generateRightBar() {
   var container = $('#component-specific');
   container.empty();
   if(draggedElement != null) {
-    var component = getComponentObject(draggedElement);
+    var component = Project.getComponentObject(draggedElement);
     if(component != null) {
       container.append('<h1>' + component['type'] + '</h1>');
 
@@ -249,7 +275,7 @@ function generateRightBar() {
 }
 
 function setParam(){
-  getComponentObject(draggedElement).parameter = parseInt($(this).children("#setParam").val())
+  Project.getComponentObject(draggedElement).parameter = parseInt($(this).children("#setParam").val())
 }
 $('#rotate-acw').on('click', rotating);
 $('#rotate-cw').on('click', rotating);
@@ -362,7 +388,7 @@ function moveConnectedWires(connectedWires, inOutCoor) {
 
 // Finds all of the wires connected to draggedElement
 function findConnectedWires() {
-  var component = getComponentObject(draggedElement);
+  var component = Project.getComponentObject(draggedElement);
 
   var connectedWires = [[], []];
   for(var i = 0; i < Project.wires.length; i++) {
@@ -415,8 +441,8 @@ function checkIfWireExists(components) {
 // Checks if it is a valid wire by checking if the wire already
 // exists within the data of the wire connects the same component
 function checkIfValidWire(closestComponent) {
-  var components = [getComponentObject(draggedElement),
-    getComponentObject(d3.select(closestComponent))];
+  var components = [Project.getComponentObject(draggedElement),
+    Project.getComponentObject(d3.select(closestComponent))];
     if(components[0]['id'] == components[1]['id']) {
       return false;
     }
@@ -458,8 +484,8 @@ function wiredragend() {
 
 // Adds The wire to data
 function addWire(closestComponent, closestConnector) {
-  var components = [getComponentObject(draggedElement),
-    getComponentObject(d3.select(closestComponent))];
+  var components = [Project.getComponentObject(draggedElement),
+    Project.getComponentObject(d3.select(closestComponent))];
     var wire = new Wire(components[0]['id'] + "-" + draggedElementWireId, components[1]['id'] + "-" + closestConnector['type']);
     Project.wires.push(wire);
 
