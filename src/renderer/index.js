@@ -634,7 +634,7 @@ function getWireCoordinates(wire) {
 function renderProject(Project) {
   emptyProject();
   Project.renderComponents();
-  Project.renderWires;
+  Project.renderWires();
 }
 
 
