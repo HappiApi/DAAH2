@@ -583,14 +583,20 @@ function dragend() {
 
 function updateMeters() {
   let meters = solve(Project);
-  if (meters != null) meters.forEach(({ id, voltage, current, resistance }) => {
-    if (!isNaN(voltage)) {
-      let voltmeter = Project.getComponentById(id);
-      voltmeter.parameter = voltage;
-      voltmeter.current = current;
-      voltmeter.resistance = resistance;
-    }
-  });
+  if (meters != null) {
+    meters.forEach(({ id, voltage, current, resistance }) => {
+      if (!isNaN(voltage)) {
+        let voltmeter = Project.getComponentById(id);
+        voltmeter.parameter = voltage;
+        voltmeter.current = current;
+        voltmeter.resistance = resistance;
+      }
+    $(".circuit-status").hide()
+    });
+  } else {
+    $(".circuit-status").show()
+  }
+
   generateRightBar();
 }
 

@@ -178,3 +178,7 @@ svg rect {
   font-size: 80%;
   margin: 5px;
 }
+
+.circuit-status{
+  color:red;
+}
