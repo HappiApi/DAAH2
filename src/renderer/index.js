@@ -1,40 +1,78 @@
+// All Them Dependencies
 const $ = require('jquery');
 const d3 = require('d3');
-//const componentMap = require('../static.json');
 
-// BAD BAD GLOBALS
-var Project = ProjectFactory()
+class ProjectFactory {
+  constructor(name=generateRandom(), components=[], wires=[]){
+    this.name = name;
+    this.components = components;
+    this.wires = wires;
+  }
+
+  renderComponents() {
+  let componentLength = this.components.length;
+    for(var i = 0; i < componentLength; i++) {
+      var element = canvas.append("g")
+        .attr("class", "component")
+        .attr("id", this.components[i]['id'])
+        .call(drag);
+
+      transform(element, this.components[i]['x'], this.components[i]['y'], this.components[i]['orientation'] * 90);
+
+      element.append("image")
+        .attr("width", 40)
+        .attr("height", 40)
+        .attr("xlink:href", "../static/images/" + this.components[i]['type'] + ".png");
+    }
+  }
+
+  // Not working yet
+  renderWires() {
+    let wiresLength = this.wires.length;
+    for(var i = 0; i < wiresLength; i++) {
+      var coor = getWireCoordinates(this.wires[i]);
+      var wire = canvas.append("line")
+        .attr("x1", coor[0][0])
+        .attr("y1", coor[0][1])
+        .attr("x2", coor[1][0])
+        .attr("y2", coor[1][1])
+        .attr("stroke", "black")
+        .attr("stroke-width", "2")
+        .attr("class", "wire")
+        .attr("id", this.wires[i]['connects'][0] + '-' + this.wires[i]['connects'][1])
+        .on("click", displayWire);
+    }
+  }
+
+
+}
+
+class Component{
+  constructor(name) {
+    this.id = name[0] + String(componentCount);
+    this.type = name;
+    this.orientation = 0;
+    this.x = 0;
+    this.y = 0;
+    this.parameter = 0;
+  }
+}
+
+class Wire{
+  constructor(idOne, idTwo) {
+    this.connects = [idOne, idTwo];
+  }
+}
+
+// GLOBAL WARMING
+var Project = new ProjectFactory()
 var storage = localStorage
 var projectID = null;
-
 var componentCount = 0
 var draggedElement = null;
 var draggedElementWireId = null; // Used for wires to see if it was connected to in/out
 var draggedWire = null;
 var selectedWire = null;
-
-// Debug
-// window.componentMap = componentMap
-//window.Project = Project
-window.draggedElement = draggedElement
-
-// Component Creation
-function Component(name){
-  return {
-    id: name[0] + String(componentCount),
-    type: name,
-    orientation: 0,
-    x: 0,
-    y: 0,
-    parameter: 0
-  };
-}
-
-function Wire(id1, id2) {
-  return {
-    connects: [id1, id2]
-  };
-}
 
 // Gets component object from d3 object
 function getComponentObject(d3Object) {
@@ -422,7 +460,7 @@ function wiredragend() {
 function addWire(closestComponent, closestConnector) {
   var components = [getComponentObject(draggedElement),
     getComponentObject(d3.select(closestComponent))];
-    var wire = Wire(components[0]['id'] + "-" + draggedElementWireId, components[1]['id'] + "-" + closestConnector['type']);
+    var wire = new Wire(components[0]['id'] + "-" + draggedElementWireId, components[1]['id'] + "-" + closestConnector['type']);
     Project.wires.push(wire);
 
     draggedWire.attr('id', wire['connects'][0] + '-' + wire['connects'][1]);
@@ -517,22 +555,22 @@ function emptyProject() {
         .attr("class", "canvas");
 }
 
-function renderComponents(components) {
-  let componentLength = components.length;
-  for(var i = 0; i < componentLength; i++) {
-    var element = canvas.append("g")
-      .attr("class", "component")
-      .attr("id", components[i]['id'])
-      .call(drag);
+// function renderComponents(components) {
+//   let componentLength = components.length;
+//   for(var i = 0; i < componentLength; i++) {
+//     var element = canvas.append("g")
+//       .attr("class", "component")
+//       .attr("id", components[i]['id'])
+//       .call(drag);
 
-    transform(element, components[i]['x'], components[i]['y'], components[i]['orientation'] * 90);
+//     transform(element, components[i]['x'], components[i]['y'], components[i]['orientation'] * 90);
 
-    element.append("image")
-      .attr("width", 40)
-      .attr("height", 40)
-      .attr("xlink:href", "../static/images/" + components[i]['type'] + ".png");
-  }
-}
+//     element.append("image")
+//       .attr("width", 40)
+//       .attr("height", 40)
+//       .attr("xlink:href", "../static/images/" + components[i]['type'] + ".png");
+//   }
+// }
 
 function getWireCoordinates(wire) {
   var ids = [wire['connects'][0].split('-')[0], wire['connects'][1].split('-')[0]];
@@ -542,27 +580,27 @@ function getWireCoordinates(wire) {
     (wire['connects'][1].split('-')[1] == 'in') ? inOutCoor[1][0] : inOutCoor[1][1]]
 }
 
-function renderWires(wires) {
-  let wiresLength = wires.length;
-  for(var i = 0; i < wiresLength; i++) {
-    var coor = getWireCoordinates(wires[i]);
-    var wire = canvas.append("line")
-      .attr("x1", coor[0][0])
-      .attr("y1", coor[0][1])
-      .attr("x2", coor[1][0])
-      .attr("y2", coor[1][1])
-      .attr("stroke", "black")
-      .attr("stroke-width", "2")
-      .attr("class", "wire")
-      .attr("id", wires[i]['connects'][0] + '-' + wires[i]['connects'][1])
-      .on("click", displayWire);
-  }
-}
+// function renderWires(wires) {
+//   let wiresLength = wires.length;
+//   for(var i = 0; i < wiresLength; i++) {
+//     var coor = getWireCoordinates(wires[i]);
+//     var wire = canvas.append("line")
+//       .attr("x1", coor[0][0])
+//       .attr("y1", coor[0][1])
+//       .attr("x2", coor[1][0])
+//       .attr("y2", coor[1][1])
+//       .attr("stroke", "black")
+//       .attr("stroke-width", "2")
+//       .attr("class", "wire")
+//       .attr("id", wires[i]['connects'][0] + '-' + wires[i]['connects'][1])
+//       .on("click", displayWire);
+//   }
+// }
 
 function renderProject(Project) {
   emptyProject();
-  renderComponents(Project.components);
-  renderWires(Project.wires);
+  Project.renderComponents();
+  Project.renderWires;
 }
 
 
@@ -670,19 +708,20 @@ function createNewProjectHead(projectID) {
 // Storage
 // -----------------------------------------------
 
-function ProjectFactory(){
-  return  {
-            name: generateRandom(),
-            components: [],
-            wires: []
-          };
-}
+// function new ProjectFactory() {
+//   return  {
+//             name: generateRandom(),
+//             components: [],
+//             wires: []
+//           };
+// }
 
 function loadProject(projectID){
-  //Get project from storage
+  // Get project JSON Object from storage
   var project = JSON.parse(storage.getItem(projectID));
-  Project = project;
-  renderProject(project);
+  // Make Project Class
+  Project = new ProjectFactory(project.name, project.components, project.wires);
+  renderProject(Project);
 }
 
 function saveProject(projectID){
@@ -699,7 +738,7 @@ function saveProject(projectID){
 }
 
 function createProject(){
-  Project = ProjectFactory();
+  Project = new ProjectFactory();
   emptyProject();
   saveProject(Project.name);
 }
@@ -710,7 +749,7 @@ function deleteProject(projectID){
 
   // Remove visual elements
   emptyProject();
-  Project = ProjectFactory();
+  Project = new ProjectFactory();
 }
 
 function generateRandom(){
@@ -730,7 +769,7 @@ function populateProjects(){
     drawingSmallSVG(smallCanvas);
     storage.setItem(projectID, JSON.stringify(storage.key(i)));
   }
-  Project = ProjectFactory();
+  Project = new ProjectFactory();
 }
 
 $("#save-project").on("click", function(){
@@ -749,3 +788,4 @@ $("#projects").on("click", ".project", function(){
 })
 
 window.onload = populateProjects
+window.Project = function(){return Project};
