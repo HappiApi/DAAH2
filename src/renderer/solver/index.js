@@ -21,6 +21,20 @@ const componentAttrs = {
       in: null,
       out: null
     }
+  },
+  diode: {
+    type: "diode",
+    connectors: {
+      in: null,
+      out: null
+    }
+  },
+  switch: {
+    type: "switch",
+    connectors: {
+      in: null,
+      out: null
+    }
   }
 }
 
