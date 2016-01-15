@@ -2,6 +2,8 @@
 const $ = require('jquery');
 const d3 = require('d3');
 
+import solver from "./solver";
+
 class ProjectFactory {
   constructor(name=generateRandom(), components=[], wires=[]){
     this.name = name;
