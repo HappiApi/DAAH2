@@ -18,8 +18,9 @@
   "author": "DAAH",
   "license": "MIT",
   "devDependencies": {
+    "electron-prebuilt": "^0.36.3",
     "electron-prebuilt-compile": "^0.36.1",
-    "electron-prebuilt": "^0.36.3"
+    "jasmine": "^2.4.1"
   },
   "dependencies": {
     "d3": "^3.5.12",
