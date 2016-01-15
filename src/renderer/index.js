@@ -74,13 +74,21 @@ class ProjectFactory {
 }
 
 class Component{
-  constructor(name) {
+  constructor(name, parameter=0) {
     this.id = name[0] + String(componentCount);
     this.type = name;
     this.orientation = 0;
     this.x = 0;
     this.y = 0;
-    this.parameter = 0;
+    if(name == "resistor") {
+      this.parameter = 1;
+    }
+    else if(name == "cell") {
+      this.parameter = 9;
+    }
+    else {
+    this.parameter = parameter;
+    }
   }
 }
 
@@ -195,7 +203,7 @@ function rotating(ev) {
     var rotation = ((getRotationAngle(draggedElement) - 90) % 360);
   }
   transformAngle(draggedElement, rotation);
-  //Sets orientation of Component Object ONE LINER BITCHES
+  //Sets orientation of Component Object
   Project.getComponentObject(draggedElement).orientation = (rotation/90);
 }
 
