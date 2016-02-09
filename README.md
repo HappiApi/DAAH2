@@ -3,7 +3,13 @@
 
 A desktop application for creating and testing electronic circuits.
 
+## Setup
+Assuming you have node and npm installed, run:
+```
+npm install
+```
 
-
-
- 
+## Running the application
+```
+npm start
+```
